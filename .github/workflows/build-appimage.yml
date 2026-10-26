@@ -1,0 +1,43 @@
+name: Build HMCL AppImage
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            openjdk-17-jdk \
+            git \
+            wget \
+            file \
+            fuse \
+            desktop-file-utils
+
+      - name: Build HMCL
+        run: |
+          chmod +x gradlew
+          ./gradlew makeExecutables
+
+      - name: Inspect build output
+        run: |
+          find build -type f \
+            \( -name "*.jar" -o -name "*.deb" -o -name "*.AppImage" \)
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: HMCL-Linux-Build
+          path: build/
+          if-no-files-found: error
